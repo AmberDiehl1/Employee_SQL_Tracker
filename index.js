@@ -40,15 +40,15 @@ function startMenu() {
           viewRole();
           break
         case "Add Role":
-          updateRoles();
+          addRole();
           break
-        // case "Quit":
-        //   viewEmploy();
-        //   break
+        case "Quit":
+          process.exit();
       }
     }
   )
 }
+
 
 // I am presented with a formatted table showing department names and department ids
 function viewDept() {
@@ -90,115 +90,194 @@ function viewEmploy() {
 }
 
 // I am prompted to enter the employee’s first name, last name, role, and manager, and that employee is added to the database
-function addEmploy(params) {
-  inquirer.prompt(
-    [{
-      type: 'input',
-      name: 'first_name',
-      message: "What is the employee's first name?",
-    },
-    {
-      type: 'input',
-      name: 'last_name',
-      message: "What is the employee's last name?",
-    },
-    {
-      type: 'list',
-      name: 'role',
-      message: "What is the employee's role?",
-      choices: ["fgy"],
-    },
-    {
-      type: 'list',
-      name: 'role',
-      message: "Who is the employee's manager?",
-      choices: [""],
-    }
-    ]
-  ).then(
-    results => {
-      console.log(results);
-    }
-  )
+function addEmploy() {
+
+  db.query(`SELECT role.id, role.title FROM role`, function (err, results) {
+    const roleTitles = results.map(function (role) {
+      return {
+        name: role.title,
+        value: role.id
+      }
+    })
+    db.query(`SELECT employee.first_name, employee.last_name,employee.manager_id FROM employee`, function (err, results) {
+      const managerNames = results.map(function (employee) {
+        if (employee.manager_id !== 'NULL') {
+          return {
+            name: employee.first_name + " " + employee.last_name,
+            value: employee.manager_id
+          }
+        }
+      })
+      
+      inquirer.prompt(
+        [{
+          type: 'input',
+          name: 'first_name',
+          message: "What is the employee's first name?",
+        },
+        {
+          type: 'input',
+          name: 'last_name',
+          message: "What is the employee's last name?",
+        },
+        {
+          type: 'list',
+          name: 'role_id',
+          message: "What is the employee's role?",
+          choices: roleTitles,
+        },
+        {
+          type: 'list',
+          name: 'manager_id',
+          message: "Who is the employee's manager?",
+          choices: managerNames,
+        }
+      ]
+      ).then(
+        results => {
+          console.log(results);
+          const sql = `UPDATE employee SET role_id = ? WHERE id = ?`;
+          const params = [results.role_id, results.employ_id];
+          
+          db.query(sql, params, (err, result) => {
+            if (err) {
+              console.log(err)
+              return;
+            }
+            console.log('The Role has been updated within the database');
+            startMenu();
+          });
+        });
+      }
+    )
+  });
+
 }
 
 // update Employee Roles
 // I am prompted to select an employee to update and their new role and this information is updated in the database
-function updateEmployRoles(params) {
+function updateEmployRoles() {
+
+  db.query(`SELECT * FROM employee`, function (err, results) {
+    const employeeTitles = results.map(function (employee) {
+      return {
+        name: employee.first_name + " " + employee.last_name,
+        value: employee.id
+      }
+    })
+    db.query(`SELECT role.id, role.title FROM role`, function (err, results) {
+      const roleTitles = results.map(function (role) {
+        return {
+          name: role.title,
+          value: role.id
+        }
+      })
+
+      inquirer.prompt(
+        [{
+          type: 'list',
+          name: 'employee_id',
+          message: "Which employee's role do you want to update?",
+          choices: employeeTitles,
+        },
+        {
+          type: 'list',
+          name: 'role_id',
+          message: 'Which role do you wan to assign the selected employee?',
+          choices: roleTitles,
+        }]
+      ).then(
+        results => {
+          console.log(results);
+          // order matters first question mark means first value in the params array to be answered and the 2nd ? is for the 2nd value etc. you have to add a question mark each time you want to update a larger param or table.
+          const sql = `UPDATE employee SET role_id = ? WHERE id = ?`;
+          const params = [results.role_id, results.employee_id];
+
+          db.query(sql, params, (err, result) => {
+            if (err) {
+              console.log(err)
+              return;
+            }
+            console.log("Updated employees's role")
+            startMenu();
+          });
+        }
+      )
+    });
+  });
+}
+
+function addDept() {
   inquirer.prompt(
     [{
       type: 'input',
-      name: 'employ_id',
-      message: 'Please type in the id of the employee',
-    },
-    {
-      type: 'input',
-      name: 'role_id',
-      message: 'Please type in the role id?',
+      name: 'name',
+      message: 'What is the name of the Department?',
     }]
   ).then(
     results => {
       console.log(results);
-      // order matters first question mark means first value in the params array to be answered and the 2nd ? is for the 2nd value etc. you have to add a question mark each time you want to update a larger param or table.
-      const sql = `UPDATE employee SET role_id = ? WHERE id = ?`;
-      const params = [results.role_id, results.employ_id];
+      const sql = `INSERT INTO department SET ?`;
+      const params = results;
 
       db.query(sql, params, (err, result) => {
         if (err) {
           console.log(err)
           return;
         }
-        console.log('The Role has been updated within the database')
+        console.log('Added the Department to the database');
+        startMenu();
       });
     }
   )
 }
 
-// I am prompted to enter the name, salary, and department for the role and that role is added to the database
-function updateRoles(params) {
-  inquirer.prompt(
-    [{
-      type: 'input',
-      name: 'employ_id',
-      message: 'Please type in the id of the employee',
-    },
-    {
-      type: 'input',
-      name: 'role_id',
-      message: 'Please type in the role id?',
-    }]
-  ).then(
-    results => {
-      console.log(results);
-      // order matters first question mark means first value in the params array to be answered and the 2nd ? is for the 2nd value etc. you have to add a question mark each time you want to update a larger param or table.
-      const sql = `UPDATE employee SET role_id = ? WHERE id = ?`;
-      const params = [results.role_id, results.employ_id];
+function addRole() {
 
-      db.query(sql, params, (err, result) => {
-        if (err) {
-          console.log(err)
-          return;
-        }
-        console.log('The Role has been updated within the database')
-      });
-    }
-  )
+  db.query(`SELECT * FROM department`, function (err, results) {
+    const deptTitles = results.map(function (department) {
+      return {
+        name: department.name,
+        value: department.id
+      }
+
+    })
+
+    inquirer.prompt(
+      [{
+        type: 'input',
+        name: 'title',
+        message: 'What is the name of the role?',
+      },
+      {
+        type: 'input',
+        name: 'salary',
+        message: 'What is the salary of the role?',
+      },
+      {
+        type: 'list',
+        name: 'department_id',
+        message: 'Which department does the role belong to?',
+        choices: deptTitles,
+      }]
+    ).then(
+      results => {
+        console.log(results);
+        // order matters first question mark means first value in the params array to be answered and the 2nd ? is for the 2nd value etc. you have to add a question mark each time you want to update a larger param or table.
+        const sql = `INSERT INTO role SET ?`;
+        const params = results
+
+        db.query(sql, params, (err, result) => {
+          if (err) {
+            console.log(err)
+            return;
+          }
+          console.log('The Role has been updated within the database');
+          startMenu();
+        });
+      }
+    )
+  });
 }
-
-// I am prompted to enter the name of the department and that department is added to the database
-function addDept(params) {
-  inquirer.prompt(
-    [{
-      type: 'input',
-      name: '',
-      message: 'Please write a short description of your project',
-    }]
-  ).then(
-    results => {
-      console.log(results);
-    }
-  )
-}
-
 
 startMenu();

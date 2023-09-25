@@ -20,7 +20,7 @@ VALUES ('SEO Specialist', 70000,1),
        ('Supply Chain Cost Analyst', 85000,4),
        ('Predictive Analytics Analyst', 110000,5),
        ('Financial Analyst', 105000,5),
-       ('Actuary', 135000,5);
+       ('Actuary', 135000,5),
        ('Marketing Director', 115000,1),
        ('IT Manager', 145000,2),
        ('HR Director', 100000,3),
@@ -47,6 +47,6 @@ VALUES ('David', 'Johnson',1, NULL),
        ('Tyler', 'Peterson',17, 2),
        ('Dylan', 'Hayes',18, 3),
        ('Alexis', 'Greenwood',19, 4),
-       ('Mark ','Wilks',20, 5),
+       ('Mark ','Wilks',20, 5);
       
       
