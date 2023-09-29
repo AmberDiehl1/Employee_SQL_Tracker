@@ -100,15 +100,19 @@ function addEmploy() {
       }
     })
     db.query(`SELECT employee.first_name, employee.last_name,employee.manager_id FROM employee`, function (err, results) {
-      const managerNames = results.map(function (employee) {
-        if (employee.manager_id !== 'NULL') {
-          return {
-            name: employee.first_name + " " + employee.last_name,
-            value: employee.manager_id
-          }
+      const managerNames = [];
+      for (let index = 0; index < results.length; index++) {
+        if (results[index].manager_id) {
+          managerNames.push(
+            {
+              name: results[index].first_name + " " + results[index].last_name,
+              value: results[index].manager_id
+            }
+          )
         }
-      })
+      }
       
+      console.log(managerNames);
       inquirer.prompt(
         [{
           type: 'input',
@@ -132,13 +136,13 @@ function addEmploy() {
           message: "Who is the employee's manager?",
           choices: managerNames,
         }
-      ]
+        ]
       ).then(
         results => {
           console.log(results);
           const sql = `UPDATE employee SET role_id = ? WHERE id = ?`;
           const params = [results.role_id, results.employ_id];
-          
+
           db.query(sql, params, (err, result) => {
             if (err) {
               console.log(err)
@@ -148,7 +152,7 @@ function addEmploy() {
             startMenu();
           });
         });
-      }
+    }
     )
   });
 
