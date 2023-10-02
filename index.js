@@ -187,7 +187,7 @@ function updateEmployRoles() {
         {
           type: 'list',
           name: 'role_id',
-          message: 'Which role do you wan to assign the selected employee?',
+          message: 'Which role do you want to assign the selected employee?',
           choices: roleTitles,
         }]
       ).then(
